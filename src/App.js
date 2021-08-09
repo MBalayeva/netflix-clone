@@ -1,24 +1,49 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { lazy, Suspense } from "react";
+import { Switch } from "react-router-dom";
+import * as ROUTES from "./constansts/routes";
+import { ProtectedRoutes, IsUserLoggedIn } from "./helpers/routes";
+import useAuthListener from "./hooks/auth-listener";
 
 function App() {
+  const Home = lazy(() => import("./pages/Home"));
+  const Signin = lazy(() => import("./pages/Signin"));
+  const Signup = lazy(() => import("./pages/Signup"));
+  const Browse = lazy(() => import("./pages/Browse"));
+
+  const user = useAuthListener();
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
+    <Suspense fallback={<p>loading...</p>}>
+      <Switch>
+        <IsUserLoggedIn
+          user={user}
+          exact
+          loggedInPath={ROUTES.BROWSE}
+          path={ROUTES.HOME}
         >
-          Learn React
-        </a>
-      </header>
-    </div>
+          <Home />
+        </IsUserLoggedIn>
+        <IsUserLoggedIn
+          user={user}
+          exact
+          loggedInPath={ROUTES.BROWSE}
+          path={ROUTES.SIGNIN}
+        >
+          <Signin />
+        </IsUserLoggedIn>
+        <IsUserLoggedIn
+          user={user}
+          exact
+          loggedInPath={ROUTES.BROWSE}
+          path={ROUTES.SIGNUP}
+        >
+          <Signup />
+        </IsUserLoggedIn>
+        <ProtectedRoutes user={user} exact path={ROUTES.BROWSE}>
+          <Browse />
+        </ProtectedRoutes>
+      </Switch>
+    </Suspense>
   );
 }
 
